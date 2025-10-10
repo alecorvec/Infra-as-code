@@ -1,0 +1,19 @@
+name: Terraform Destroy
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Environnement à détruire (dev ou prd)'
+        required: true
+        default: dev
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Init Terraform
+        run: terraform init -backend-config=terraform/backends/${{ github.event.inputs.env }}.config
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -var-file=terraform/${{ github.event.inputs.env }}.tfvars
