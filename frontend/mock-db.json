@@ -1,0 +1,76 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Finaliser la présentation client",
+      "content": "Préparer les slides de la présentation pour le client ABC, inclure les métriques de performance et les roadmap Q4",
+      "due_date": "2025-10-25T00:00:00Z",
+      "done": false,
+      "created_at": "2025-10-17T08:00:00Z",
+      "updated_at": "2025-10-17T08:00:00Z"
+    },
+    {
+      "id": "2",
+      "title": "Review du code backend",
+      "content": "Faire la review des pull requests pour le module d'authentification et valider les tests unitaires",
+      "due_date": "2025-10-20T00:00:00Z",
+      "done": true,
+      "created_at": "2025-10-15T09:00:00Z",
+      "updated_at": "2025-10-18T14:30:00Z"
+    },
+    {
+      "id": "3",
+      "title": "Mise à jour de la documentation",
+      "content": "Documenter les nouveaux endpoints de l'API et mettre à jour le README avec les exemples d'utilisation",
+      "due_date": "2025-10-15T00:00:00Z",
+      "done": false,
+      "created_at": "2025-10-10T10:00:00Z",
+      "updated_at": "2025-10-10T10:00:00Z"
+    },
+    {
+      "id": "4",
+      "title": "Configuration du CI/CD",
+      "content": "Mettre en place les pipelines GitHub Actions pour le déploiement automatique sur AWS",
+      "due_date": "2025-10-30T00:00:00Z",
+      "done": false,
+      "created_at": "2025-10-17T11:00:00Z",
+      "updated_at": "2025-10-17T11:00:00Z"
+    },
+    {
+      "id": "5",
+      "title": "Tests E2E avec Playwright",
+      "content": "Implémenter les tests end-to-end pour les flows critiques: création de tâche, modification, suppression",
+      "due_date": "2025-11-05T00:00:00Z",
+      "done": false,
+      "created_at": "2025-10-17T11:30:00Z",
+      "updated_at": "2025-10-17T11:30:00Z"
+    },
+    {
+      "id": "6",
+      "title": "Meeting d'équipe hebdomadaire",
+      "content": "Participer au standup meeting pour synchroniser avec l'équipe sur l'avancement des features",
+      "due_date": "2025-10-22T00:00:00Z",
+      "done": true,
+      "created_at": "2025-10-14T08:00:00Z",
+      "updated_at": "2025-10-16T09:00:00Z"
+    },
+    {
+      "id": "7",
+      "title": "Optimisation des performances",
+      "content": "Analyser et optimiser le bundle size, lazy loading des composants, et améliorer le lighthouse score",
+      "due_date": "2025-11-10T00:00:00Z",
+      "done": false,
+      "created_at": "2025-10-17T12:00:00Z",
+      "updated_at": "2025-10-17T12:00:00Z"
+    },
+    {
+      "id": "8",
+      "title": "Formation TypeScript pour l'équipe",
+      "content": "Organiser une session de formation sur les advanced TypeScript patterns et best practices",
+      "due_date": "2025-10-28T00:00:00Z",
+      "done": false,
+      "created_at": "2025-10-17T13:00:00Z",
+      "updated_at": "2025-10-17T13:00:00Z"
+    }
+  ]
+}
