@@ -4,6 +4,8 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import { correlation } from "./middlewares/correlation.js";
 import { auth } from "./middlewares/auth.js";
+import tasksRouter from "./routes/tasks.routes.js";
+import { errorHandler } from "./middlewares/error.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -28,4 +30,6 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 app.use(auth);
+app.use("/tasks", tasksRouter);
+app.use(errorHandler);
 export default app;
