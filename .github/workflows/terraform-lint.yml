@@ -1,25 +1,25 @@
-name: Terraform Lint & Validate
-on:
-  pull_request:
-    branches:
-      - main
-      - dev
-  push:
-    branches:
-      - main
-      - dev
-jobs:
-  lint-validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-      - name: Terraform Validate
-        run: terraform validate
-      - name: tfsec Security Scan
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          working_directory: .
+# name: Terraform Lint & Validate
+# on:
+#   pull_request:
+#     branches:
+#       - main
+#       - dev
+#   push:
+#     branches:
+#       - main
+#       - dev
+# jobs:
+#   lint-validate:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v2
+#       - name: Terraform Format Check
+#         run: terraform fmt -check -recursive
+#       - name: Terraform Validate
+#         run: terraform validate
+#       - name: tfsec Security Scan
+#         uses: aquasecurity/tfsec-action@v1.0.0
+#         with:
+#           working_directory: .

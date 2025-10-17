@@ -1,14 +1,10 @@
-data "google_client_config" "default" {}
-
-provider "kubernetes" {
-  host                   = "https://${google_container_cluster.default.endpoint}"
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(google_container_cluster.default.master_auth[0].cluster_ca_certificate)
-
-  ignore_annotations = [
-    "^autopilot\\.gke\\.io\\/.*",
-    "^cloud\\.google\\.com\\/.*"
-  ]
+terraform {
+  required_providers {
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+      version = ">= 2.24.0"
+    }
+  }
 }
 
 resource "kubernetes_deployment_v1" "default" {
@@ -31,31 +27,59 @@ resource "kubernetes_deployment_v1" "default" {
         container {
           image = "us-docker.pkg.dev/google-samples/containers/gke/infra-app:2.0"
           name  = "infra-app-container"
+          
+          resources {
+            limits = {
+              cpu    = "200m"
+              memory = "256Mi"
+            }
+            requests = {
+              cpu    = "100m"
+              memory = "128Mi"
+            }
+          }
+
           port {
             container_port = 8080
-            name           = "infra-app-svc"
+            name          = "infra-app-svc"
           }
+
           security_context {
             allow_privilege_escalation = false
-            privileged                 = false
-            read_only_root_filesystem  = false
+            privileged                = false
+            read_only_root_filesystem = false
             capabilities {
               add  = []
               drop = ["NET_RAW"]
             }
           }
+
+          startup_probe {
+            http_get {
+              path = "/"
+              port = "infra-app-svc"
+            }
+            initial_delay_seconds = 10
+            period_seconds       = 5
+            failure_threshold    = 30
+          }
+
           liveness_probe {
             http_get {
               path = "/"
               port = "infra-app-svc"
-
-              http_header {
-                name  = "X-Custom-Header"
-                value = "Awesome"
-              }
             }
-            initial_delay_seconds = 3
-            period_seconds        = 3
+            initial_delay_seconds = 60
+            period_seconds       = 10
+          }
+
+          readiness_probe {
+            http_get {
+              path = "/"
+              port = "infra-app-svc"
+            }
+            initial_delay_seconds = 30
+            period_seconds       = 10
           }
         }
         security_context {
@@ -94,11 +118,4 @@ resource "kubernetes_service_v1" "default" {
     }
     type = "LoadBalancer"
   }
-  depends_on = [time_sleep.wait_service_cleanup]
-}
-
-# Provide time for Service cleanup
-resource "time_sleep" "wait_service_cleanup" {
-  depends_on = [google_container_cluster.default]
-  destroy_duration = "180s"
 }
