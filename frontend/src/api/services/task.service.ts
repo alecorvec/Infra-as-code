@@ -1,10 +1,9 @@
-import axiosInstance, { getCurrentTimestamp } from '../axios.config'
+import httpClient, { getCurrentTimestamp } from '../axios.config'
 import {
   Task,
   CreateTaskRequest,
   UpdateTaskRequest,
   DeleteTaskRequest,
-  ApiResponse,
   PaginatedResponse,
 } from '../../types/task.types'
 
@@ -25,18 +24,32 @@ class TaskService {
     done?: boolean
     search?: string
   }): Promise<PaginatedResponse<Task>> {
-    const response = await axiosInstance.get<PaginatedResponse<Task>>(this.BASE_PATH, {
+    const response = await httpClient.get<Task[] | PaginatedResponse<Task>>(this.BASE_PATH, {
       params,
     })
-    return response.data
+    
+    // Si la réponse est directement un tableau, on l'encapsule dans le format attendu
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        meta: {
+          current_page: 1,
+          per_page: response.data.length,
+          total: response.data.length,
+          total_pages: 1
+        }
+      }
+    }
+    
+    return response.data as PaginatedResponse<Task>
   }
 
   /**
    * Get a specific task by ID
    */
   async getTaskById(id: string): Promise<Task> {
-    const response = await axiosInstance.get<ApiResponse<Task>>(`${this.BASE_PATH}/${id}`)
-    return response.data.data
+    const response = await httpClient.get<Task>(`${this.BASE_PATH}/${id}`)
+    return response.data
   }
 
   /**
@@ -48,8 +61,8 @@ class TaskService {
       request_timestamp: getCurrentTimestamp(),
     }
     
-    const response = await axiosInstance.post<ApiResponse<Task>>(this.BASE_PATH, payload)
-    return response.data.data
+    const response = await httpClient.post<Task>(this.BASE_PATH, payload)
+    return response.data
   }
 
   /**
@@ -64,11 +77,11 @@ class TaskService {
       request_timestamp: getCurrentTimestamp(),
     }
     
-    const response = await axiosInstance.put<ApiResponse<Task>>(
+    const response = await httpClient.put<Task>(
       `${this.BASE_PATH}/${id}`,
       payload
     )
-    return response.data.data
+    return response.data
   }
 
   /**
@@ -86,7 +99,7 @@ class TaskService {
       request_timestamp: getCurrentTimestamp(),
     }
     
-    await axiosInstance.delete(`${this.BASE_PATH}/${id}`, { data: payload })
+    await httpClient.delete(`${this.BASE_PATH}/${id}`, { data: payload })
   }
 
   /**

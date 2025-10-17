@@ -16,14 +16,17 @@ export const useTasks = (autoFetch = true) => {
     done?: boolean
     search?: string
   }) => {
+    console.log('fetchTasks called with params:', params)
     setLoading(true)
     setError(null)
     
     try {
       const response = await taskService.getTasks(params)
-      setTasks(response.data)
+      setTasks(response.data || [])
     } catch (err) {
+      console.error('Error fetching tasks:', err)
       setError(err as ApiError)
+      setTasks([]) // Ensure tasks is always an array
     } finally {
       setLoading(false)
     }

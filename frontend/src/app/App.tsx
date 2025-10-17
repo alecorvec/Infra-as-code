@@ -16,12 +16,12 @@ function App() {
   const { deleteTask, loading: deleteLoading, error: deleteError } = useDeleteTask()
 
   // Stats
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter((t) => t.done).length
+  const totalTasks = tasks?.length || 0
+  const completedTasks = tasks?.filter((t) => t.done).length || 0
   const activeTasks = totalTasks - completedTasks
-  const overdueTasks = tasks.filter(
+  const overdueTasks = tasks?.filter(
     (t) => !t.done && new Date(t.due_date) < new Date()
-  ).length
+  ).length || 0
 
   const handleCreateTask = async (data: {
     title: string
@@ -77,12 +77,7 @@ function App() {
       <header className="bg-white shadow-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div>
               <h1 className="text-3xl font-bold text-gray-900">Task Manager</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Gérez vos tâches efficacement avec load balancing support
-              </p>
-            </div>
             <button
               onClick={() => setShowForm(!showForm)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
@@ -172,7 +167,7 @@ function App() {
 
         {/* Task List */}
         <TaskList
-          tasks={tasks}
+          tasks={tasks || []}
           loading={tasksLoading}
           onToggle={handleToggleTask}
           onDelete={handleDeleteTask}
@@ -184,7 +179,7 @@ function App() {
       <footer className="mt-16 py-6 border-t border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-600">
-            🚀 Built with React + TypeScript | Tailwind CSS | Axios with Retry Logic & Correlation IDs
+            🚀 Built with React + TypeScript | Tailwind CSS | Axios
           </p>
           <p className="text-center text-xs text-gray-500 mt-2">
             © 2025 Task Manager App. All rights reserved to bozos in group 12.

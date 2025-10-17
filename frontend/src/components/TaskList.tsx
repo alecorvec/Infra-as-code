@@ -18,7 +18,7 @@ export const TaskList = ({ tasks, loading, onToggle, onDelete, onEdit }: TaskLis
     )
   }
 
-  if (tasks.length === 0) {
+  if (!tasks || tasks.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-12 text-center">
         <div className="text-gray-400 mb-4">

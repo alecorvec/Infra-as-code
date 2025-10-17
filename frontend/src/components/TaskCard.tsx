@@ -59,7 +59,6 @@ export const TaskCard = ({ task, onToggle, onDelete, onEdit }: TaskCardProps) =>
                 isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'
               }`}
             >
-              {isOverdue && !task.done && '⚠️ '}
               Due: {dueDate}
             </span>
           </div>
