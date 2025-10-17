@@ -1,4 +1,4 @@
-import { Task } from '../../types/task.types'
+import { Task } from '../types/task.types'
 import { CheckCircleIcon, ClockIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
 
 interface TaskCardProps {

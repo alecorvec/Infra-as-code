@@ -4,7 +4,6 @@ import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../hooks/
 import { TaskList } from '../components/TaskList'
 import { TaskForm } from '../components/TaskForm'
 import { ErrorDisplay } from '../components/ErrorDisplay'
-import './App.css'
 
 function App() {
   const [showForm, setShowForm] = useState(false)
@@ -185,10 +184,10 @@ function App() {
       <footer className="mt-16 py-6 border-t border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-600">
-            🚀 Built with React + TypeScript | 🎨 Tailwind CSS | 🌐 Axios with Retry Logic & Correlation IDs
+            🚀 Built with React + TypeScript | Tailwind CSS | Axios with Retry Logic & Correlation IDs
           </p>
           <p className="text-center text-xs text-gray-500 mt-2">
-            Ready for load-balanced, high-scale production environments
+            © 2025 Task Manager App. All rights reserved to bozos in group 12.
           </p>
         </div>
       </footer>

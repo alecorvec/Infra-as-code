@@ -1,4 +1,4 @@
-import { Task } from '../../types/task.types'
+import { Task } from '../types/task.types'
 import { TaskCard } from './TaskCard'
 
 interface TaskListProps {
