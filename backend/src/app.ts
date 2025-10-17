@@ -3,6 +3,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import { correlation } from "./middlewares/correlation.js";
+import { auth } from "./middlewares/auth.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -26,4 +27,5 @@ app.get("/health", (_req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
+app.use(auth);
 export default app;
