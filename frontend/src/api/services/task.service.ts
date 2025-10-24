@@ -1,11 +1,11 @@
-import httpClient, { getCurrentTimestamp } from '../axios.config'
+import httpClient, { getCurrentTimestamp } from '../axios.config';
 import {
   Task,
   CreateTaskRequest,
   UpdateTaskRequest,
   DeleteTaskRequest,
   PaginatedResponse,
-} from '../../types/task.types'
+} from '../../types/task.types';
 
 /**
  * Task Service - Abstraction layer for Task API endpoints
@@ -13,21 +13,21 @@ import {
  * and provides a clean interface for the application layer
  */
 class TaskService {
-  private readonly BASE_PATH = '/tasks'
+  private readonly BASE_PATH = '/tasks';
 
   /**
    * Get all tasks with optional pagination and filters
    */
   async getTasks(params?: {
-    page?: number
-    per_page?: number
-    done?: boolean
-    search?: string
+    page?: number;
+    per_page?: number;
+    done?: boolean;
+    search?: string;
   }): Promise<PaginatedResponse<Task>> {
     const response = await httpClient.get<Task[] | PaginatedResponse<Task>>(this.BASE_PATH, {
       params,
-    })
-    
+    });
+
     // Si la réponse est directement un tableau, on l'encapsule dans le format attendu
     if (Array.isArray(response.data)) {
       return {
@@ -36,20 +36,20 @@ class TaskService {
           current_page: 1,
           per_page: response.data.length,
           total: response.data.length,
-          total_pages: 1
-        }
-      }
+          total_pages: 1,
+        },
+      };
     }
-    
-    return response.data as PaginatedResponse<Task>
+
+    return response.data as PaginatedResponse<Task>;
   }
 
   /**
    * Get a specific task by ID
    */
   async getTaskById(id: string): Promise<Task> {
-    const response = await httpClient.get<Task>(`${this.BASE_PATH}/${id}`)
-    return response.data
+    const response = await httpClient.get<Task>(`${this.BASE_PATH}/${id}`);
+    return response.data;
   }
 
   /**
@@ -59,10 +59,10 @@ class TaskService {
     const payload: CreateTaskRequest = {
       ...taskData,
       request_timestamp: getCurrentTimestamp(),
-    }
-    
-    const response = await httpClient.post<Task>(this.BASE_PATH, payload)
-    return response.data
+    };
+
+    const response = await httpClient.post<Task>(this.BASE_PATH, payload);
+    return response.data;
   }
 
   /**
@@ -75,20 +75,17 @@ class TaskService {
     const payload: UpdateTaskRequest = {
       ...taskData,
       request_timestamp: getCurrentTimestamp(),
-    }
-    
-    const response = await httpClient.put<Task>(
-      `${this.BASE_PATH}/${id}`,
-      payload
-    )
-    return response.data
+    };
+
+    const response = await httpClient.put<Task>(`${this.BASE_PATH}/${id}`, payload);
+    return response.data;
   }
 
   /**
    * Toggle task completion status
    */
   async toggleTaskStatus(id: string, currentStatus: boolean): Promise<Task> {
-    return this.updateTask(id, { done: !currentStatus })
+    return this.updateTask(id, { done: !currentStatus });
   }
 
   /**
@@ -97,28 +94,28 @@ class TaskService {
   async deleteTask(id: string): Promise<void> {
     const payload: DeleteTaskRequest = {
       request_timestamp: getCurrentTimestamp(),
-    }
-    
-    await httpClient.delete(`${this.BASE_PATH}/${id}`, { data: payload })
+    };
+
+    await httpClient.delete(`${this.BASE_PATH}/${id}`, { data: payload });
   }
 
   /**
    * Batch operations for better performance with load balancing
    */
   async batchDeleteTasks(ids: string[]): Promise<void> {
-    const deletePromises = ids.map((id) => this.deleteTask(id))
-    await Promise.all(deletePromises)
+    const deletePromises = ids.map(id => this.deleteTask(id));
+    await Promise.all(deletePromises);
   }
 
   /**
    * Batch update tasks status
    */
   async batchUpdateStatus(ids: string[], done: boolean): Promise<Task[]> {
-    const updatePromises = ids.map((id) => this.updateTask(id, { done }))
-    return Promise.all(updatePromises)
+    const updatePromises = ids.map(id => this.updateTask(id, { done }));
+    return Promise.all(updatePromises);
   }
 }
 
 // Export a singleton instance
-export const taskService = new TaskService()
-export default taskService
+export const taskService = new TaskService();
+export default taskService;

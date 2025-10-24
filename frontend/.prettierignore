@@ -1,0 +1,30 @@
+# Ignore des fichiers pour Prettier
+node_modules
+dist
+build
+.vite
+*.min.js
+*.min.css
+
+# Configuration files
+.eslintrc.cjs
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
