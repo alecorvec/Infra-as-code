@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Task } from '../../types/task.types'
 
 interface TaskFormProps {
@@ -20,6 +20,26 @@ export const TaskForm = ({ task, onSubmit, onCancel, loading = false }: TaskForm
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Met à jour le formulaire quand la tâche change (pour l'édition)
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        content: task.content || '',
+        due_date: task.due_date ? task.due_date.split('T')[0] : '',
+      })
+    } else {
+      // Réinitialise le formulaire pour une nouvelle tâche
+      setFormData({
+        title: '',
+        content: '',
+        due_date: '',
+      })
+    }
+    // Réinitialise aussi les erreurs
+    setErrors({})
+  }, [task])
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -46,8 +66,24 @@ export const TaskForm = ({ task, onSubmit, onCancel, loading = false }: TaskForm
     if (!validate()) return
 
     try {
-      await onSubmit(formData)
-      setFormData({ title: '', content: '', due_date: '' })
+      // Convertit la date au format ISO complet pour le backend
+      const formattedData = {
+        ...formData,
+        due_date: formData.due_date ? `${formData.due_date}T00:00:00.000Z` : formData.due_date
+      }
+
+      // Debug: Log des données envoyées
+      console.log('🚀 Données du formulaire envoyées:', formattedData)
+      console.log('📅 Date formatée:', formattedData.due_date)
+      console.log('📅 Date originale:', formData.due_date)
+      console.log('📝 Tâche en cours d\'édition:', task)
+      
+      await onSubmit(formattedData)
+      
+      // Ne réinitialise le formulaire que si ce n'est pas une édition
+      if (!task) {
+        setFormData({ title: '', content: '', due_date: '' })
+      }
       setErrors({})
     } catch (error) {
       console.error('Error submitting form:', error)
