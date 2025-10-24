@@ -44,8 +44,31 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: "Tasks API Documentation"
 }));
 
-app.get("/health", (_req: Request, res: Response) => {
-  res.json({ ok: true });
+app.get("/health", async (_req: Request, res: Response) => {
+  try {
+    // Vérifier la connexion à la base de données
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    await prisma.$connect();
+    await prisma.$disconnect();
+    
+    res.json({ 
+      ok: true, 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+      version: process.env.npm_package_version || '1.0.0'
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      ok: false, 
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
 app.use(auth);
