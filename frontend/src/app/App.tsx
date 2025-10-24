@@ -39,10 +39,27 @@ function App() {
     due_date: string
   }) => {
     if (editingTask) {
-      await updateTask(editingTask.id, data)
-      setEditingTask(null)
-      setShowForm(false)
-      refetch()
+      // Debug: Log des données avant et après
+      console.log('🔄 Mise à jour de la tâche:', editingTask.id)
+      console.log('📊 Données reçues du formulaire:', data)
+      console.log('📅 Date reçue:', data.due_date)
+      console.log('🏷️ Tâche originale:', editingTask)
+      
+      try {
+        const updatedTask = await updateTask(editingTask.id, data)
+        console.log('✅ Tâche mise à jour côté backend:', updatedTask)
+        
+        setEditingTask(null)
+        setShowForm(false)
+        
+        // Petit délai pour laisser le backend traiter
+        setTimeout(() => {
+          console.log('🔄 Rafraîchissement de la liste...')
+          refetch()
+        }, 500)
+      } catch (error) {
+        console.error('❌ Erreur lors de la mise à jour:', error)
+      }
     }
   }
 
@@ -68,7 +85,62 @@ function App() {
     setEditingTask(null)
   }
 
-  const isLoading = tasksLoading || createLoading || updateLoading || deleteLoading
+  // Load Balancer Test - Creates multiple tasks rapidly
+  const [loadBalancerTestLoading, setLoadBalancerTestLoading] = useState(false)
+  const handleLoadBalancerTest = async () => {
+    setLoadBalancerTestLoading(true)
+    const numberOfTasks = 500 // Nombre de tâches à créer
+    const promises = []
+
+    for (let i = 1; i <= numberOfTasks; i++) {
+      const taskData = {
+        title: `Load Test Task #${i}`,
+        content: `Tâche automatique générée pour tester le load balancer - ${new Date().toISOString()}`,
+        due_date: new Date(Date.now() + (i * 24 * 60 * 60 * 1000)).toISOString().split('T')[0] // Échelonne les dates
+      }
+      promises.push(createTask(taskData))
+    }
+
+    try {
+      await Promise.all(promises)
+      refetch() // Rafraîchit la liste des tâches
+    } catch (error) {
+      console.error('Erreur lors du test du load balancer:', error)
+    } finally {
+      setLoadBalancerTestLoading(false)
+    }
+  }
+
+  // Delete All Tasks - Supprime toutes les tâches
+  const [deleteAllLoading, setDeleteAllLoading] = useState(false)
+  const handleDeleteAllTasks = async () => {
+    if (!tasks || tasks.length === 0) {
+      alert('Aucune tâche à supprimer')
+      return
+    }
+
+    const confirmDelete = window.confirm(
+      `⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les ${tasks.length} tâches ?\n\nCette action est irréversible !`
+    )
+
+    if (!confirmDelete) return
+
+    setDeleteAllLoading(true)
+    const deletePromises = tasks.map(task => deleteTask(task.id))
+
+    try {
+      await Promise.all(deletePromises)
+      alert(`✅ ${tasks.length} tâches supprimées avec succès !`)
+      refetch() // Rafraîchit la liste des tâches
+    } catch (error) {
+      console.error('Erreur lors de la suppression des tâches:', error)
+      alert('❌ Erreur lors de la suppression de certaines tâches')
+    } finally {
+      setDeleteAllLoading(false)
+    }
+  }
+
+  const isLoading = tasksLoading || createLoading || updateLoading || deleteLoading || loadBalancerTestLoading || deleteAllLoading
   const error = tasksError || createError || updateError || deleteError
 
   return (
@@ -78,12 +150,52 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold text-gray-900">Task Manager</h1>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
-            >
-              {showForm ? 'Fermer' : '+ Nouvelle tâche'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteAllTasks}
+                disabled={deleteAllLoading || totalTasks === 0}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg flex items-center gap-2"
+              >
+                {deleteAllLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Suppression...
+                  </>
+                ) : (
+                  <>
+                    🗑️ Supprimer Tout ({totalTasks})
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleLoadBalancerTest}
+                disabled={loadBalancerTestLoading}
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg flex items-center gap-2"
+              >
+                {loadBalancerTestLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Test en cours...
+                  </>
+                ) : (
+                  <>
+                    ⚡ Test Load Balancer
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
+              >
+                {showForm ? 'Fermer' : '+ Nouvelle tâche'}
+              </button>
+            </div>
           </div>
         </div>
       </header>
