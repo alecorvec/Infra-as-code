@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Pre-commit hook pour vérifier la qualité du code frontend
+echo "🔍 Vérification de la qualité du code frontend..."
+
+cd frontend
+
+# Vérifier si nous sommes dans un commit
+if [ -n "$HUSKY_GIT_STDIN" ]; then
+  # Exécuter lint-staged sur les fichiers stagés
+  npx lint-staged
+else
+  # Vérification complète en développement
+  npm run check-all
+fi

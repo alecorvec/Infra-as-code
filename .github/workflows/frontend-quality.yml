@@ -1,0 +1,196 @@
+name: Frontend Code Quality
+
+on:
+  push:
+    branches: [ main, develop, feature/*, fix/* ]
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  FRONTEND_DIR: './frontend'
+
+jobs:
+  # Job de qualité du code
+  code-quality:
+    name: Code Quality Check
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ${{ env.FRONTEND_DIR }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint
+      continue-on-error: false
+      
+    - name: Check Prettier formatting
+      run: npm run format:check
+      continue-on-error: false
+      
+    - name: Check TypeScript types
+      run: npm run type-check
+      continue-on-error: false
+    
+    - name: Generate Code Quality Report
+      if: always()
+      run: |
+        echo "## 📋 Code Quality Report" >> $GITHUB_STEP_SUMMARY
+        echo "### ESLint Results" >> $GITHUB_STEP_SUMMARY
+        if npm run lint &> /dev/null; then
+          echo "✅ ESLint: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ ESLint: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "### Prettier Results" >> $GITHUB_STEP_SUMMARY
+        if npm run format:check &> /dev/null; then
+          echo "✅ Prettier: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Prettier: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "### TypeScript Results" >> $GITHUB_STEP_SUMMARY
+        if npm run type-check &> /dev/null; then
+          echo "✅ TypeScript: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ TypeScript: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "### Code Statistics" >> $GITHUB_STEP_SUMMARY
+        echo "- TypeScript files: $(find src -name '*.ts' -o -name '*.tsx' | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- JavaScript files: $(find src -name '*.js' -o -name '*.jsx' | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- Total lines: $(find src -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' | xargs wc -l | tail -1 | awk '{print $1}')" >> $GITHUB_STEP_SUMMARY
+
+  # Job de construction pour valider que le code compile
+  build-validation:
+    name: Build Validation
+    runs-on: self-hosted
+    needs: code-quality
+    defaults:
+      run:
+        working-directory: ${{ env.FRONTEND_DIR }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+    
+    - name: Build Summary
+      run: |
+        echo "## 🏗️ Build Validation" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ✅ Build successful" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build size**: $(du -sh dist | cut -f1)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Files count**: $(find dist -type f | wc -l)" >> $GITHUB_STEP_SUMMARY
+
+  # Job de correction automatique (seulement sur les PR)
+  auto-fix:
+    name: Auto Fix Code Style
+    runs-on: self-hosted
+    needs: code-quality
+    if: github.event_name == 'pull_request' && failure()
+    defaults:
+      run:
+        working-directory: ${{ env.FRONTEND_DIR }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.head_ref }}
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run auto-fix
+      run: |
+        npm run lint:fix
+        npm run format
+    
+    - name: Check for changes
+      id: changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Commit fixes
+      if: steps.changes.outputs.has_changes == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "🔧 Auto-fix: ESLint and Prettier corrections"
+        git push
+    
+    - name: Auto-fix Summary
+      run: |
+        echo "## 🔧 Auto-fix Results" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.changes.outputs.has_changes }}" == "true" ]; then
+          echo "- **Status**: ✅ Fixes applied and committed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Status**: ℹ️ No fixes needed" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Job de notification de succès
+  success-notification:
+    name: Success Notification
+    runs-on: self-hosted
+    needs: [code-quality, build-validation]
+    if: success()
+    
+    steps:
+    - name: Success notification
+      run: |
+        echo "## ✅ Code Quality Check Passed!" >> $GITHUB_STEP_SUMMARY
+        echo "- **ESLint**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Prettier**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- **TypeScript**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        
+        # Notification système macOS
+        osascript -e 'display notification "Code quality check passed!" with title "Frontend Quality ✅"'
